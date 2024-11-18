@@ -1,0 +1,55 @@
+$primary: #0d6efd;
+$secondary: #6c757d;
+$success: #198754;
+$info: #0dcaf0;
+$warning: #ffc107;
+$danger: #dc3545;
+$light: #f8f9fa;
+$dark: #212529;
+$borderTabs: #dee2e6;
+
+.container, .container-fluid{
+	box-sizing: border-box;
+	padding: 0;
+	margin: 0;
+}
+
+.main--container{
+	width: 100%;
+	min-height: 100vh;
+	background-color: $borderTabs;
+	padding: 2.5rem;
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 1rem;
+}
+
+.custom--form, .custom--form:focus, .custom--form:focus-visible{
+	border: none;
+	box-shadow: none;
+	padding: 0px;
+	margin: 0px;
+	background: transparent;
+	border-radius: 0;
+	border-bottom: 1px dotted #BDBDBD;
+}
+
+.custom--label{
+	padding: 0;
+	margin: 0;
+}
+
+.form-group:focus-visible{
+	outline: none;
+}
+
+h1,h2,h3,h4,h5,h6, span{
+	margin: 0;
+	padding: 0;
+	text-align: center;
+	font-weight: 500;
+}
+
+@import "./builder.scss";

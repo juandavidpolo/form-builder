@@ -1,0 +1,62 @@
+.builder--container{
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    &>.builder--header, .builder--section{
+        padding: 1rem;
+        background: $light;
+        border-radius: 0.5rem;
+        border-top: 3px solid $light;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    &>.builder--constructor{
+        &>.form--builder--constructor{
+            width: 100%;
+            padding: 1rem;
+            background: $light;
+            border-radius: 0.5rem;
+            border-top: 3px solid $light;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            gap: 0.75rem;
+            &>div{
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                flex-wrap: nowrap;
+                gap: 1rem;
+                &>:nth-child(1){
+                    flex: 1 0 auto;
+                }
+            }
+            &>.answer--options{
+                flex-direction: column;
+                &>h4{
+                    width: 100%;
+                    text-align: center;
+                }
+                &>div{
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-start;
+                    align-items: center;
+                }
+            }
+        }
+    }
+    &>.builder--header:hover, .builder--section:hover{
+        border-top: 3px solid $info;
+    }
+}
+
+@import "./questionBuilder.scss";
