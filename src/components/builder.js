@@ -50,10 +50,17 @@ const Builder = () => {
         });
     };
 
+    const saveForm = () => {
+        console.log("test: ", form)
+    }
+
     return(
         <div className="builder--container" fluid>
             <div>
-                <Button>Save</Button>
+                <Button className="custom--button"
+                    onClick={()=>saveForm()}>
+                    Save
+                </Button>
             </div>
             <div className="builder--header">
                 <Input
@@ -67,6 +74,8 @@ const Builder = () => {
                 <Input
                     type="textarea"
                     className="custom--form"
+                    style={{ resize: "none" }}
+                    row={1}
                     name={form.description.name}
                     value={form.description.value}
                     placeholder={form.description.placeholder}

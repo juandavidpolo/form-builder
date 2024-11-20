@@ -1,10 +1,11 @@
 import React, {useState, useEffect} from "react";
-
 import {
     Button,
     Input,
     Label
 } from 'reactstrap';
+
+import { useSelector } from "react-redux";
 
 /**
  * A React component that renders a question builder for creating and managing form questions.
@@ -17,46 +18,10 @@ import {
  */
 const QuestionBuilder = ({questions_arr, addQuestion}) => {
 
+    const initialData = useSelector((state) => state.generals);
+
     const [questions, setQuestions] = useState([]);
-    const [newQuestion, setNewQuestion] = useState({
-        type:{
-            value:"text",
-            name:"type",
-            label:"Question Type",
-            type:"select",
-            options:[
-                {value:"text", label:"Short Text"},
-                {value:"textarea", label:"Long Text"},
-                {value:"select", label:"Select"},
-                {value:"radio", label:"Radio Buttons"},
-                {value:"checkbox", label:"Checkbox"},
-            ]
-        },
-        label:{
-            value:"",
-            name:"label",
-            type:"text",
-            placeholder:"Question Label",
-            label:"label"
-        },
-        placeholder:{
-            value:"",
-            name:"placeholder",
-            type:"text",
-            placeholder:"Question placeholder",
-            label:"placeholder"
-        },
-        isRequired:{
-            value: true,
-            name:"isRequired",
-            type:"checkbox",
-            label:"isRequired"
-        },
-        options:[
-            {label:"Option 1"},
-            {label:"Option 2"}
-        ]
-    });
+    const [newQuestion, setNewQuestion] = useState(initialData.questionForm);
 
     useEffect(() => {
         setQuestions(questions_arr);
@@ -68,23 +33,23 @@ const QuestionBuilder = ({questions_arr, addQuestion}) => {
             let nameParts = name.split("-");
             const object_name = nameParts[0];
             const index = parseInt(nameParts[1]);
-            setNewQuestion(prevNewQuestion => {
-                const updatedArray = [...prevNewQuestion[object_name]];
+            setNewQuestion(prevState => {
+                const updatedArray = [...prevState[object_name]];
                 updatedArray[index] = {
                     ...updatedArray[index],
                     label: value,
                 };
                 return {
-                    ...prevNewQuestion,
+                    ...prevState,
                     [object_name]: updatedArray,
                 };
             });
         }else{
-            setNewQuestion(prevNewQuestion => ({
-                ...prevNewQuestion,
+            setNewQuestion(prevState => ({
+                ...prevState,
                 [name]:{
-                    ...prevNewQuestion[name],
-                    value:value
+                    ...prevState[name],
+                    value: name === "isRequired"? value === "true" ? false : true : value
                 }
             }))
         }
@@ -93,14 +58,32 @@ const QuestionBuilder = ({questions_arr, addQuestion}) => {
     const addNewQuestion = (question) => {
         const newQuestion = {}
         const keys = Object.keys(question)
+        const regex = /text/
         keys.forEach(key => {
-            if(question[key].value !== undefined){
+            if(question[key]?.value !== undefined){
                 newQuestion[key] = question[key].value
-            }else if(question[key].options !== undefined){
-                newQuestion[key] = question[key].options
+            }else if(!regex.test(question.type.value) && key === "options" && Array.isArray(question[key])){
+                newQuestion[key] = [...question[key]]
             }
         });
-        addQuestion(newQuestion)
+        addQuestion(newQuestion);
+        setNewQuestion(initialData.questionForm);
+    }
+
+    const addOption = () => {
+        const currentOptions = [...newQuestion.options]
+        currentOptions.push({label:"New Option"})
+        setNewQuestion((prevState) => ({
+            ...prevState,
+            options: currentOptions,
+        }));
+    }
+
+    const deleteOption = (indexToDelete) => {
+        setNewQuestion((prevState) => ({
+            ...prevState,
+            options: prevState.options.filter((_, index) => index !== indexToDelete),
+        }));
     }
 
     const renderField = (questionAttributes) => {
@@ -115,7 +98,11 @@ const QuestionBuilder = ({questions_arr, addQuestion}) => {
                             name={`${name}-${j}`}
                             value={option.label}
                             onChange={ev => onChangeValue(ev, true)}/>
-                        <Button>Delete</Button>
+                        <Button
+                            className="custom--button option--button"
+                            onClick={() => {deleteOption(j)}}>
+                                Delete
+                        </Button>
                     </div>
                 ))
                 if(!regex.test(questionAttributes.type.value)){
@@ -123,6 +110,11 @@ const QuestionBuilder = ({questions_arr, addQuestion}) => {
                         <div className="answer--options" key={i}>
                             <h4>Answer Options</h4>
                             {options}
+                            <Button
+                                className="custom--button"
+                                onClick={() => {addOption()}}>
+                                    New Option
+                            </Button>
                         </div>
                     )
                 }
@@ -160,10 +152,11 @@ const QuestionBuilder = ({questions_arr, addQuestion}) => {
                                 type={attributeValues.type}
                                 name={attributeValues.name}
                                 value={attributeValues.value}
+                                checked={attributeValues.value}
                                 onChange={ev => onChangeValue(ev)}/>
                         </div>
                     )
-                }else{
+                }else if(regex.test(questionAttributes.type.value) || name !== "placeholder"){
                     return(
                         <div key={i}>
                             <Label className="custom--label">
@@ -186,22 +179,103 @@ const QuestionBuilder = ({questions_arr, addQuestion}) => {
     return(
         <div className="builder--constructor">
             <div className="builder--section">
-                <Button onClick={() => addNewQuestion(newQuestion)}>Add Question</Button>
+                <Button 
+                    className="custom--button"
+                    onClick={() => addNewQuestion(newQuestion)}>
+                        Add Question
+                </Button>
             </div>
             <div className="form--builder--constructor">
                 {renderField(newQuestion)}
             </div>
             <div className="form--list">
                 {questions && questions.length > 0 && questions.map((question, index)=>{
-                    return(
-                        <div className="form--question" key={index}>
-                            <Label><b>{`${index+1}. `}</b>{question.label} {question.isRequired?<b>*</b>:null}</Label>
-                            <Input
-                                className="custom--form"
-                                placeholder={question.placeholder}
-                            />
-                        </div>
-                )})}
+                    if(question.type === "select"){
+                        return(
+                            <div className="form--question" key={index}>
+                                <Label>
+                                    <b>{`${index+1}. `}</b>
+                                    {question.label} {question.isRequired?<b className="require--field">*</b>:null}
+                                </Label>
+                                <Input
+                                    className="custom--form"
+                                    type={question.type}>
+                                        {question.options && question.options.map((option, j)=>(
+                                            <option key={j}>{option.label}</option>
+                                        ))}
+                                </Input>
+                            </div>
+                        )
+                    }else if(question.type === "checkbox"){
+                        return(
+                            <div className="form--question" key={index}>
+                                <Label>
+                                    <b>{`${index+1}. `}</b>
+                                    {question.label} {question.isRequired?<b className="require--field">*</b>:null}
+                                </Label>
+                                {question.options && question.options.map((option, j)=>(
+                                    <div className="form--row">
+                                        <Input
+                                            key={j}
+                                            name={`checkbox-${index}-${j}`}
+                                            className="custom--form"
+                                            type={question.type}/>
+                                        <Label className="custom--label">{option.label}</Label>
+                                    </div>
+                                ))}
+                            </div>
+                        )
+                    }else if(question.type === "radio"){
+                        return(
+                            <div className="form--question" key={index}>
+                                <Label>
+                                    <b>{`${index+1}. `}</b>
+                                    {question.label} {question.isRequired?<b className="require--field">*</b>:null}
+                                </Label>
+                                {question.options && question.options.map((option, j)=>(
+                                    <div className="form--row" key={j}>
+                                        <Input
+                                            key={j}
+                                            name={`radio-${index}`}
+                                            className="custom--form"
+                                            type={question.type}/>
+                                        <Label className="custom--label">{option.label}</Label>
+                                    </div>
+                                ))}
+                            </div>
+                        )
+                    }else if(question.type === "textarea"){
+                        return(
+                            <div className="form--question" key={index}>
+                                <Label>
+                                    <b>{`${index+1}. `}</b>
+                                    {question.label} {question.isRequired?<b className="require--field">*</b>:null}
+                                </Label>
+                                <Input
+                                    className="custom--form"
+                                    placeholder={question.placeholder}
+                                    type={question.type}
+                                    row={1}
+                                    style={{ resize: "none" }}
+                                />
+                            </div>
+                        )
+                    }else{
+                        return(
+                            <div className="form--question" key={index}>
+                                <Label>
+                                    <b>{`${index+1}. `}</b>
+                                    {question.label} {question.isRequired?<b className="require--field">*</b>:null}
+                                </Label>
+                                <Input
+                                    className="custom--form"
+                                    placeholder={question.placeholder}
+                                    type={question.type}
+                                />
+                            </div>
+                        )
+                    }
+                })}
             </div>
         </div>
     )
